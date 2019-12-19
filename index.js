@@ -1,14 +1,16 @@
 const inquirer = require("inquirer");
-// const fs = require("fs");
-// const util = require("util");
+const fs = require("fs");
+const util = require("util");
+const axios = require("axios");
 
-// const writeFileAsync = util.promisify(fs.writeFile);
+
+const writeFileAsync = util.promisify(fs.writeFile);
 
 function promptUser() {
     return inquirer.prompt([
         {
             type: "input",
-            name: "name",
+            name: "username",
             message: "What is your github username?"
         },
         {
@@ -22,11 +24,29 @@ function promptUser() {
                 "orange",
                 "pink"
             ]
-        }
-    ])
-}
+        },
+    ]).then(function ({ username, color }) {
+        const queryUrl = `https://api.github.com/users/${username}`;
 
-function generateHTML(answers) {
+        axios.get(queryUrl).then(function (res) {
+            const user = res.data
+
+            const name = user.name
+            const pic = user.avatar_url
+            const bio = user.bio
+            const repo = user.html_url
+            const company = user.company
+            const numRepos = user.public_repos
+            const followers = user.followers
+            const following = user.following
+            const location = user.location
+            
+            writeFileAsync("index.html", generateHTML(color, name, pic, bio, repo, company, numRepos, followers, following, location));
+        });
+
+    });
+}
+function generateHTML(color, name, pic, bio, repo, company, numRepos, followers, following, location) {
     return `
   <!DOCTYPE html>
   <html lang="en">
@@ -36,23 +56,27 @@ function generateHTML(answers) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <title>Document</title>
   </head>
-  <body>
-    <div class="jumbotron jumbotron-fluid">
-    <div class="container">
-      <h1 class="display-4">Hi! My name is ${answers.name}</h1>
-      <p class="lead">I am from ${answers.location}.</p>
-      <h3>Example heading <span class="badge badge-secondary">Contact Me</span></h3>
-      <ul class="list-group">
-        <li class="list-group-item">My GitHub username is ${answers.github}</li>
-        <li class="list-group-item">LinkedIn: ${answers.linkedin}</li>
-      </ul>
-    </div>
-  </div>
+  <body style="background-color:grey">
+      <h1 class="display-4" style="color:${color}">${name}</h1>
+      <img src="${pic}" alt="adam">
+      <p>Bio: ${bio} </p>
+      <p>Repo URL: <a href="${repo}"target="_blank">Adam's repo</a> </p>
+      <p>Company: ${company}</p>
+      <p>Public Repos: ${numRepos} </p>
+      <p>Followers: ${followers}</p>
+      <p>Following: ${following}</p>
+      <p>Location: ${location}</p>
+
+    
+
   </body>
   </html>`;
-  }
+}
 
 promptUser()
-.then(function(answers) {
-
-})
+    .then(function () {
+        console.log("Successfully wrote to index.html");
+    })
+    .catch(function (err) {
+        console.log(err);
+    });
