@@ -2,6 +2,9 @@ const inquirer = require("inquirer");
 const fs = require("fs");
 const util = require("util");
 const axios = require("axios");
+var pdf = require('html-pdf');
+
+
 
 
 const writeFileAsync = util.promisify(fs.writeFile);
@@ -40,7 +43,7 @@ function promptUser() {
             const followers = user.followers
             const following = user.following
             const location = user.location
-            
+
             writeFileAsync("index.html", generateHTML(color, name, pic, bio, repo, company, numRepos, followers, following, location));
         });
 
@@ -56,19 +59,19 @@ function generateHTML(color, name, pic, bio, repo, company, numRepos, followers,
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <title>Document</title>
   </head>
-  <body style="background-color:grey">
-      <h1 class="display-4" style="color:${color}">${name}</h1>
+  <body style="background-color:${color}; padding-left:25px">
+      <h1 class="display-4">${name}</h1>
       <img src="${pic}" alt="adam">
-      <p>Bio: ${bio} </p>
-      <p>Repo URL: <a href="${repo}"target="_blank">Adam's repo</a> </p>
-      <p>Company: ${company}</p>
-      <p>Public Repos: ${numRepos} </p>
-      <p>Followers: ${followers}</p>
-      <p>Following: ${following}</p>
-      <p>Location: ${location}</p>
+      <p style="color:white">Bio: ${bio} </p>
+      <p style="color:white">Repo URL: <a href="${repo}"target="_blank">${name}'s profile</a> </p>
+      <p style="color:white">Company: ${company}</p>
+      <p style="color:white">Public Repos: ${numRepos} </p>
+      <p style="color:white">Followers: ${followers}</p>
+      <p style="color:white">Following: ${following}</p>
+      <p style="color:white">Location: ${location}</p>
 
     
-
+    
   </body>
   </html>`;
 }
@@ -80,3 +83,14 @@ promptUser()
     .catch(function (err) {
         console.log(err);
     });
+
+
+    var html = fs.readFileSync('./index.html', 'utf8');
+    var options = { format: 'Letter' };
+     
+    pdf.create(html, options).toFile('./index.pdf', function(err, res) {
+      if (err) return console.log(err);
+      console.log(res); // { filename: '/app/businesscard.pdf' }
+    });
+     
+    
